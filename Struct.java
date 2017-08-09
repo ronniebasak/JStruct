@@ -8,13 +8,14 @@
  * See the GNU General Public License for more details.
  * You should have received a copy of the GNU General Public License along with this program. 
  * if not, see http://www.gnu.org/licenses/.
- * 
+ *
  */
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.lang.*;
 import java.nio.ByteOrder;
+import java.util.Arrays;
 
 import static java.lang.Math.*;
 
@@ -193,6 +194,8 @@ public class Struct {
 
                 if (bx == null)
                     throw new Exception("Invalid character specifier");
+
+
             }
 
         }
@@ -212,9 +215,10 @@ public class Struct {
             throw new Exception("format length and values aren't equal");
 
         len = lenEst(fmt);
-        ByteArrayOutputStream bx = new ByteArrayOutputStream(len);
 
-        byte[][] bxx= new byte[len][1];
+        byte[] bxx = new byte[0];
+        byte[] bx;
+        byte[] temp;
 
         for (int i=0; i<fmt.length(); i++){
             char c = fmt.charAt(i);
@@ -229,14 +233,21 @@ public class Struct {
                     byteOrder = nativeByteOrder;
             }
             else if((c != '>') && (c != '<') && (c != '@') && (c != '!')) {
-                bxx[i] = pack(Character.toString(c), vals[i]);
+                if((c0 == '@') || (c0 == '>') || (c0 == '<') || (c0 == '!')) {
+                    bx = pack(Character.toString(c), vals[i-1]);
+                }
+                else {
+                    bx = pack(Character.toString(c), vals[i]);
+                }
+                temp = new byte[bxx.length + bx.length];
+                System.arraycopy(bxx, 0, temp, 0,bxx.length);
+                System.arraycopy(bx, 0, temp, bxx.length, bx.length);
+
+                bxx = Arrays.copyOf(temp, temp.length);
             }
         }
 
-        for(int i=0; i<bxx.length; i++){
-            bx.write(bxx[i]);
-        }
-        return bx.toByteArray();
+        return bxx;
     }
 
 
@@ -281,7 +292,6 @@ public class Struct {
 
         long x;
         x = ( ((long)(val[0] & 0xff))<<24) | (((long) (val[1] & 0xff))<<16) | ( ((long)(val[2]&0xff))<<8) | ((long)(val[3] & 0xff));
-        //System.out.println(x);
         return x;
     }
     public long unpack_single_data(char fmt, byte[] val) throws Exception{
@@ -318,7 +328,6 @@ public class Struct {
                 break;
         }
 
-        //System.out.println(var);
         return var;
     }
 
@@ -380,7 +389,6 @@ public class Struct {
                     else if(c == 'i' || c =='I'){
                         int read = bs.read(bLong);
                         bxx[p] = unpack_single_data(c, bLong);
-                        //System.out.println(bxx[p]+" "+);
                     }
                     p++;
                 }
@@ -389,7 +397,5 @@ public class Struct {
         }
         return bxx;
     }
-
-
 
 }
