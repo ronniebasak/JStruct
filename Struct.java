@@ -342,6 +342,8 @@ public class Struct {
                 counter+=4;
             else if (x=='h' || x=='H')
                 counter+=2;
+            else if (x=='b' || x=='B')
+                counter+=1;
         }
         return counter;
     }
